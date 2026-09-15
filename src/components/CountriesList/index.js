@@ -6,6 +6,7 @@ import {
   COLORS, FONT_SANS, eyebrowSx,
   circularIconButtonSx, textInputEditorialSx, pillTagSx,
 } from "../../theme/natGeoTheme";
+import { fetchCountries } from "../../api/countries";
 
 const SearchIcon = ({ color = COLORS.inkMuted }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -31,26 +32,14 @@ const CountriesList = ({ region = "all", onRegionChange = () => {} }) => {
 
   const { data, isFetching, isError, refetch } = useQuery({
     queryKey: ["countries", paginationModel.page, paginationModel.pageSize, region, currency, membership],
-    queryFn: async () => {
-      // Base URL with Pagination and Payload Optimization (omitting heavy translations)
-      let url = `https://api.restcountries.com/countries/v5?limit=${paginationModel.pageSize}&offset=${paginationModel.page * paginationModel.pageSize}&response_fields_omit=names.translations,borders`;
-      
-      // Dynamic Query Builders
-      if (search) url += `&q=${encodeURIComponent(search)}`;
-      if (region !== "all") url += `&region=${encodeURIComponent(region)}`;
-      if (currency !== "all") url += `&currencies=${encodeURIComponent(currency)}`;
-      
-      if (membership === "eu") url += `&memberships.eu=1`;
-      if (membership === "g7") url += `&memberships.g7=1`;
-      if (membership === "un") url += `&memberships.un=1`;
-
-      const response = await fetch(url, {
-        headers: { Authorization: "Bearer rc_live_a8c20b36f410468aa46ac21db355d9a3" },
-      });
-      
-      if (!response.ok) throw new Error("Network response was not ok");
-      return (await response.json()).data;
-    },
+    queryFn: () => fetchCountries({
+      page: paginationModel.page,
+      pageSize: paginationModel.pageSize,
+      search,
+      region,
+      currency,
+      membership,
+    }),
     placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
   });

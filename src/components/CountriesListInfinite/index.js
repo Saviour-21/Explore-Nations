@@ -8,6 +8,7 @@ import {
   COLORS, FONT_SANS, eyebrowSx,
   circularIconButtonSx, textInputEditorialSx, pillTagSx, tableHeaderCellSx, tableRowSx,
 } from "../../theme/natGeoTheme";
+import { fetchCountriesPage } from "../../api/countries";
 
 const PAGE_SIZE = 15;
 
@@ -27,26 +28,6 @@ const DownArrowIcon = ({ color = COLORS.onPrimary }) => (
 
 const headerCellStyle = { ...tableHeaderCellSx, backgroundColor: COLORS.canvas, zIndex: 10 };
 
-const fetchCountriesPage = async (pageParam, searchQuery, regionQuery) => {
-  let url = `https://api.restcountries.com/countries/v5?limit=${PAGE_SIZE}&offset=${pageParam}`;
-  
-  if (searchQuery) url += `&q=${encodeURIComponent(searchQuery)}`;
-  if (regionQuery && regionQuery !== "all") url += `&region=${encodeURIComponent(regionQuery)}`;
-
-  const response = await fetch(url, {
-    headers: { Authorization: "Bearer rc_live_a8c20b36f410468aa46ac21db355d9a3" },
-  });
-
-  if (!response.ok) throw new Error("Network response was not ok");
-  const json = await response.json();
-
-  return {
-    objects: json.data?.objects ?? [],
-    total: json.data?.meta?.total ?? 0,
-    offset: pageParam,
-  };
-};
-
 const formatNumber = (value) => new Intl.NumberFormat().format(value || 0);
 
 const CountriesListInfinite = ({ region = "all", onRegionChange = () => {} }) => {
@@ -62,7 +43,7 @@ const CountriesListInfinite = ({ region = "all", onRegionChange = () => {} }) =>
   } = useInfiniteQuery({
     // Adding search and region to the queryKey forces React Query to reset and refetch when they change
     queryKey: ["countries-infinite", PAGE_SIZE, search, region],
-    queryFn: ({ pageParam }) => fetchCountriesPage(pageParam, search, region),
+    queryFn: ({ pageParam }) => fetchCountriesPage({ pageParam, pageSize: PAGE_SIZE, search, region }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       const nextOffset = lastPage.offset + lastPage.objects.length;
