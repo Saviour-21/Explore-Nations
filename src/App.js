@@ -6,6 +6,7 @@ import HomeSections from './components/HomeSections';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Box, ToggleButtonGroup, ToggleButton } from "@mui/material";
 import { COLORS, FONT_SANS } from "./theme/natGeoTheme";
+import DiscoveryMap from './components/DiscoveryMap';
 
 function App() {
   const queryClient = new QueryClient();
@@ -63,12 +64,19 @@ function App() {
           >
             <ToggleButton value="paged">Paged</ToggleButton>
             <ToggleButton value="infinite">Infinite Scroll</ToggleButton>
+            <ToggleButton value="map">Map</ToggleButton>
           </ToggleButtonGroup>
         </Box>
-        {view === "paged" ? (
+        {view === "paged" && (
           <CountriesList region={region} onRegionChange={setRegion} />
-        ) : (
+        )}
+        {view === "infinite" && (
           <CountriesListInfinite region={region} onRegionChange={setRegion} />
+        )}
+        {view === "map" && (
+          <Box sx={{ position: "relative", width: "100vw", height: "100vh" }}>
+            <DiscoveryMap />
+          </Box>
         )}
       </QueryClientProvider>
     </div>
