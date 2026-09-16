@@ -10,7 +10,7 @@ import DiscoveryMap from './components/DiscoveryMap';
 
 function App() {
   const queryClient = new QueryClient();
-  const [view, setView] = useState("paged");
+  const [view, setView] = useState("map");
   const [region, setRegion] = useState("all");
   const dataSectionRef = useRef(null);
 
