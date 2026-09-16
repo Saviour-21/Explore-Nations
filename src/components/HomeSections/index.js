@@ -29,7 +29,7 @@ const STATS = [
   { value: "4h", label: "Sync Cadence" },
 ];
 
-const HomeSections = ({ onSelectRegion = () => {} }) => (
+const HomeSections = ({ onSelectRegion = () => {}, activeRegion = "all" }) => (
   <Box sx={{ backgroundColor: COLORS.canvas, color: COLORS.ink, fontFamily: FONT_SANS }}>
 
     {/* Hero */}
@@ -67,7 +67,20 @@ const HomeSections = ({ onSelectRegion = () => {} }) => (
           }}
         >
           {FEATURES.map((feature) => (
-            <Box key={feature.title}>
+            <Box
+              key={feature.title}
+              sx={{
+                p: 2.5,
+                borderRadius: "12px",
+                backgroundColor: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                transition: "transform 0.25s ease, border-color 0.25s ease",
+                "&:hover": {
+                  transform: "translateY(-4px)",
+                  borderColor: "rgba(255,255,255,0.2)",
+                },
+              }}
+            >
               <Typography sx={{ fontSize: 15, color: COLORS.inkMuted, lineHeight: 1.6 }}>{feature.body}</Typography>
               <Typography sx={{ ...eyebrowSx, mt: 1.5, color: COLORS.primary }}>{feature.title} →</Typography>
             </Box>
@@ -78,34 +91,86 @@ const HomeSections = ({ onSelectRegion = () => {} }) => (
 
     {/* Popular Regions */}
     <Box sx={{ px: { xs: 2, md: 4 }, py: { xs: 5, md: 7 }, borderBottom: `1px solid ${COLORS.hairline}` }}>
-      <Typography sx={eyebrowSx}>By Region</Typography>
-      <Typography sx={{ mt: 1.5, fontFamily: FONT_SERIF, fontStyle: "italic", fontSize: { xs: 28, md: 40 }, lineHeight: 1.2 }}>
-        Four corners of the dataset
-      </Typography>
+      <Box sx={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 1.5 }}>
+        <Box>
+          <Typography sx={eyebrowSx}>By Region</Typography>
+          <Typography sx={{ mt: 1.5, fontFamily: FONT_SERIF, fontStyle: "italic", fontSize: { xs: 28, md: 40 }, lineHeight: 1.2 }}>
+            Four corners of the dataset
+          </Typography>
+        </Box>
+        {activeRegion !== "all" && (
+          <Typography
+            component="button"
+            onClick={() => onSelectRegion("all")}
+            sx={{
+              ...eyebrowSx,
+              cursor: "pointer",
+              background: "none",
+              border: "none",
+              padding: 0,
+              color: COLORS.primary,
+              "&:hover": { textDecoration: "underline" },
+            }}
+          >
+            Clear filter (Viewing {activeRegion}) ×
+          </Typography>
+        )}
+      </Box>
 
       <Box
         sx={{
           mt: 4,
           display: "grid",
-          gridTemplateColumns: { xs: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
-          gap: { xs: 1.5, md: 2 },
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" },
+          gap: 3,
         }}
       >
-        {REGIONS.map((region) => (
-          <Box
-            key={region.label}
-            onClick={() => onSelectRegion(region.label)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => { if (event.key === "Enter") onSelectRegion(region.label); }}
-            sx={{ cursor: "pointer", "&:hover .region-card-image": { opacity: 0.75 }, "&:hover .region-card-label": { color: COLORS.primary } }}
-          >
-            <Box className="region-card-image" sx={{ aspectRatio: "4 / 5", transition: "opacity 0.2s ease" }}>
-              <PlaceholderImage src={region.src} alt={`Illustrated map of ${region.label}`} label={region.label} width={region.width} height={region.height} sx={{ objectPosition: "top" }} />
+        {REGIONS.map((region) => {
+          const isActive = activeRegion === region.label;
+          return (
+            <Box
+              key={region.label}
+              onClick={() => onSelectRegion(isActive ? "all" : region.label)}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isActive}
+              onKeyDown={(event) => { if (event.key === "Enter") onSelectRegion(isActive ? "all" : region.label); }}
+              sx={{
+                position: "relative",
+                aspectRatio: "4 / 5",
+                borderRadius: "16px",
+                overflow: "hidden",
+                cursor: "pointer",
+                border: isActive ? `2px solid ${COLORS.primary}` : "2px solid transparent",
+                opacity: !isActive && activeRegion !== "all" ? 0.5 : 1,
+                transition: "opacity 0.2s ease, border-color 0.2s ease",
+                "&:hover .region-card-image": { transform: "scale(1.05)" },
+              }}
+            >
+              <Box
+                className="region-card-image"
+                sx={{ width: "100%", height: "100%", transition: "transform 0.5s ease" }}
+              >
+                <PlaceholderImage src={region.src} alt={`Illustrated map of ${region.label}`} label={region.label} width={region.width} height={region.height} sx={{ objectPosition: "top" }} />
+              </Box>
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "flex-end",
+                  p: 2,
+                  background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 55%)",
+                  pointerEvents: "none",
+                }}
+              >
+                <Typography sx={{ fontSize: 15, fontWeight: isActive ? 700 : 600, color: "#fff" }}>
+                  {region.label}{isActive ? " ✓" : ""}
+                </Typography>
+              </Box>
             </Box>
-            <Typography className="region-card-label" sx={{ mt: 1.5, fontSize: 15, fontWeight: 500, transition: "color 0.2s ease" }}>{region.label}</Typography>
-          </Box>
-        ))}
+          );
+        })}
       </Box>
     </Box>
 
@@ -127,10 +192,10 @@ const HomeSections = ({ onSelectRegion = () => {} }) => (
           mt: 4,
           display: "grid",
           gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" },
-          gap: { xs: 1.5, md: 2 },
+          gap: { xs: 2, md: 4 },
         }}
       >
-        <Box>
+        <Box sx={{ position: "relative", borderRadius: "16px", overflow: "hidden", border: `1px solid ${COLORS.hairline}` }}>
           <Box sx={{ aspectRatio: "3 / 2" }}>
             <Box
               component="video"
@@ -142,19 +207,45 @@ const HomeSections = ({ onSelectRegion = () => {} }) => (
               sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
           </Box>
-          <Typography sx={{ mt: 1.5, fontSize: 15, fontWeight: 500 }}>Regional Overview</Typography>
-          <Typography sx={{ mt: 0.5, color: COLORS.inkMuted, fontSize: 13, lineHeight: 1.5 }}>
-            A quick tour of how countries are grouped by region, population, and land area.
-          </Typography>
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "flex-end",
+              p: 2.5,
+              background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 55%)",
+              pointerEvents: "none",
+            }}
+          >
+            <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>Regional Overview</Typography>
+            <Typography sx={{ mt: 0.5, color: "rgba(255,255,255,0.75)", fontSize: 13, lineHeight: 1.5 }}>
+              A quick tour of how countries are grouped by region, population, and land area.
+            </Typography>
+          </Box>
         </Box>
-        <Box>
+        <Box sx={{ position: "relative", borderRadius: "16px", overflow: "hidden", border: `1px solid ${COLORS.hairline}` }}>
           <Box sx={{ aspectRatio: "3 / 2" }}>
             <PlaceholderImage src={currencyMap} alt="World currencies" label="Currency Map" width={640} height={420} />
           </Box>
-          <Typography sx={{ mt: 1.5, fontSize: 15, fontWeight: 500 }}>Currencies</Typography>
-          <Typography sx={{ mt: 0.5, color: COLORS.inkMuted, fontSize: 13, lineHeight: 1.5 }}>
-            Every nation's official currency, cross-referenced and filterable in the dataset below.
-          </Typography>
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "flex-end",
+              p: 2.5,
+              background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 55%)",
+              pointerEvents: "none",
+            }}
+          >
+            <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>Currencies</Typography>
+            <Typography sx={{ mt: 0.5, color: "rgba(255,255,255,0.75)", fontSize: 13, lineHeight: 1.5 }}>
+              Every nation's official currency, cross-referenced and filterable in the dataset below.
+            </Typography>
+          </Box>
         </Box>
       </Box>
 

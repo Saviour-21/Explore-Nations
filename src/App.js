@@ -16,13 +16,15 @@ function App() {
 
   const handleSelectRegion = (nextRegion) => {
     setRegion(nextRegion);
+    // Region cards only make sense on the list views — hop off the map so the filtered results are visible.
+    setView((currentView) => (currentView === "map" ? "paged" : currentView));
     dataSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
     <div className="App">
       <QueryClientProvider client={queryClient}>
-        <HomeSections onSelectRegion={handleSelectRegion} />
+        <HomeSections onSelectRegion={handleSelectRegion} activeRegion={region} />
         <Box
           ref={dataSectionRef}
           sx={{
